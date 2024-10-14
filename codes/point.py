@@ -17,50 +17,37 @@ point(A.ctypes.data_as(POINTER(c_double)),
       B.ctypes.data_as(POINTER(c_double)), 
       C.ctypes.data_as(POINTER(c_double)), 
       c_double(n))
-def line_gen(A, B):
-    length = 10
-    dim = A.shape[0]
-    x_AB = np.zeros((dim, length))
-    lam_1 = np.linspace(0, 1, length)
-    for i in range(length):
-        temp1 = A + lam_1[i] * (B - A)
-        x_AB[:, i] = temp1.T
-    return x_AB
-x_AB = line_gen(A, B)
-
-# Debugging output for line segment coordinates
-print("Line segment coordinates (x_AB):", x_AB)
-
-# Plotting all lines
-plt.plot(x_AB[0, :], x_AB[1, :], label='$AB$')
+num_points = 10 
+result = np.zeros((num_points, 2), dtype=np.double)
+generate_points = multip.generate_points
+generate_points.argtypes = [POINTER(c_double), POINTER(c_double), POINTER(c_double), c_int]
+generate_points(A.ctypes.data_as(POINTER(c_double)),
+                B.ctypes.data_as(POINTER(c_double)),
+                result.ctypes.data_as(POINTER(c_double)),
+                c_int(num_points))
 
 # Combine A, B, and C into a single array for plotting
 tri_coords = np.array([A, B, C]).reshape(3, 2)
 
-# Print tri_coords for debugging
-print("tri_coords for plotting:", tri_coords)
-
-# Plotting the points
+# Plotting all lines
+plt.plot(result[:, 0], result[:, 1], label='$AB$')  # Plot line segment AB
 plt.scatter(tri_coords[:, 0], tri_coords[:, 1], color='red')  # Scatter plot of points
+
+# Adding labels for points
 vert_labels = ['A', 'B', 'C']
 for i, txt in enumerate(vert_labels):
     plt.annotate(f'{txt}\n({tri_coords[i, 0]:.0f}, {tri_coords[i, 1]:.0f})',
-                 (tri_coords[i, 0], tri_coords[i, 1]),  # point to label
-                 textcoords="offset points",  # how to position the text
-                 xytext=(20, -10),  # distance from text to points (x, y)
-                 ha='center')  # horizontal alignment
+                 (tri_coords[i, 0], tri_coords[i, 1]),
+                 textcoords="offset points",
+                 xytext=(20, -10),
+                 ha='center')
 
 # Customize axes
-ax = plt.gca()
-ax.spines['left'].set_visible(False)
-ax.spines['right'].set_visible(False)
-ax.spines['top'].set_visible(False)
-ax.spines['bottom'].set_visible(False)
 plt.legend(loc='best')
-plt.grid()  # minor
+plt.grid()
 plt.axis('equal')
 
 # Save the figure in the 'fig' directory
 plt.savefig('fig/fig.jpg')
-plt.show()  # Show the plot'''
+plt.show()  # Show the plot
 
